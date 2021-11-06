@@ -1,0 +1,16 @@
+# Plan
+
+Here are the main points we talked about:
+    1. All in RAM
+    2. All new code gets added to the language
+    3. Multi-Server Compiling Torrent (MSCT)
+    4. In Python, and gets interpreted to Python
+    5. Silly, silly syntax
+    6. Web app to upload script and get an executable
+    7. Managing driver code form packages
+    8. Mobile app for executing code and seeding
+    
+I feel that we should start with some syntax, interpreting it, executing it, then worrying about the RAM stuff. 
+So . . . maybe syntax first?
+
+Should we have a firm plan here, or just main points to follow?
