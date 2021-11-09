@@ -22,3 +22,27 @@ Also, "it," "they," and "them" will be substituted with the nearest variable. Fo
 	Increase it by the sum of 3 and 4
 	Let it become it and print it
 
+For comments:
+	Note: COMMENT. You can continue the code now.
+
+For function declaration:
+	Introducing: FUNCTION_NAME (is a noun) [of ARGUMENTS (in order)]:
+				I am the STATEMENTS ON ARGUEMENTS . . .
+				Pleased to meet you.
+Note: One can write his own syntax for the function. Variable names are in CAPS.
+	Their value is placed instead of VALUE.
+
+Example:
+	Introducing: [the] biggest of x and y and z:
+			I am x if x is bigger than y and z.
+			If not, then y, if y is bigger than z.
+			If not, I am z.
+			Pleased to meet you.
+
+Example:
+	Introducing: Draw a SHAPE with a HEIGHT of VALUE and a WIDTH of VALUE:
+			...height and width can be used like this.
+			Pleased to meet you.
+
+When using a function, just call its name and put the arguements where they should be:
+	Let it be known that x is the biggest of 5 and 8.
