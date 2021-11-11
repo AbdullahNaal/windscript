@@ -7,6 +7,8 @@ First, declaring variables:
 
 Assigning a value to variables:
 	"let VAR_NAME become VALUE"
+Also:
+	"put VALUE in VAR_NAME"
 
 Increasing or decreasing a variable:
 	"Increase/decrease VAR_NAME by VALUE"
@@ -40,7 +42,7 @@ Example:
 			Pleased to meet you.
 
 Example:
-	Introducing: Draw a SHAPE with a HEIGHT of VALUE and a WIDTH of VALUE:
+	Introducing: Draw a SHAPE with a heigh of HEIGHT and a width of WIDTH:
 			...height and width can be used like this.
 			Pleased to meet you.
 
