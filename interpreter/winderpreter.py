@@ -29,6 +29,12 @@ for n in range(len(script_lines)):
 # index is a global variable that will track where we are at the script.
 index = 0
 
+# We will store all known variables so we can return them as an expression when needed.
+variables = []
+# and it starts as nothing. It is the job of the functions to change it.
+# Please note that we are not using it yet, so it is kinda just sitting here for now.
+it = "nothing_yet"
+
 # The next functions describe the output of each item in the syntax list.
 
 """
@@ -47,6 +53,8 @@ def letbeknown():
     index+=1
     # Now we write it:
     pythonscript.write(script_words[index] + " = ")
+    # and we register the new variable:
+    variables.append(script_words[index])
     # And we move towards its value.
     index += 2
     # Its value is an expression, the very next expression, in fact:
@@ -57,8 +65,6 @@ def letbeknown():
     However, we still can't discern if what we came upon is an expression or a statement,
     thus, one can write "let it be known that x is print x" and the interpreter will cry in the corner.
     For now, we will assume the greatest of circumstances, and we will correct later.
-    Also, find_next() does not know that a variable name by itself is an expression, or a number for that.
-    So, stuff like "let it be known that x is 5" won't go well.
 
     Well, step by step, shall we?
     """
@@ -80,11 +86,16 @@ def sumof():
     global index
     # We move towards the first of the two.
     while(not script_words[index] == "of"):
-        index +=1
-    index +=1
-    # and we just plaster a "+" between the things to sum.
-    to_return = script_words[index] + " + " + script_words[index+2]
-    index +=3
+        index += 1
+    index += 1
+    # We will sum two expressions, so:
+    exp = find_next()
+    # this will stop at the word "and," so we move one more word
+    index += 1
+    # and we land on the next expression.
+    exp2 = find_next()
+    # Well, we sum them.
+    to_return = exp + " + " + exp2
     return to_return
 
 def isbigger():
@@ -93,9 +104,9 @@ def isbigger():
     while(not script_words[index] == "than"):
         index += 1
     index += 1
-    # It compares to an expression (number maybe), but oh well, we can't deal with that yet, so . . .
-    exp = script_words[index]
-    # Please frgiv me-=-=-=-=-=- I just plastered whatever written after "bigger than" instead. 
+    # It compares to an expression (number maybe), so:
+    exp = find_next()
+    # So, it just returns " > exp" Makes sense?
     return " > " + exp
 
 def printu():
@@ -103,8 +114,9 @@ def printu():
     # If you are curious, we are moving forward here (index += 1) because index was referring to "print"
     # and well, we are dealing with that, so, neeeext!
     index += 1
-    pythonscript.write("print(" + script_words[index] + ")\n")
-    # I know, we should print an expression, but please bear with me for now.
+    exp = find_next()
+    # and we output "print(exp)" where exp is the next expression.
+    pythonscript.write("print(" + exp + ")\n")
 
 def iffu():
     global index
@@ -129,7 +141,17 @@ def find_next():
     global index
     # Using global index does not sit well with me, for some reason, but oh well. Can't find aother way.
     # We will look forward until we reach the end of the script . . .
-    while index < len(script_words):
+    while index < len(script_words) - 1:
+        # if the word is a string, then, well, a string is an expression.
+        if script_words[index][0] == '"' and script_words[index][-1] == '"':
+            # We increase the index, because we are done with the word.
+            index += 1
+            return script_words[index-1]
+        # if the word is a number or a variable name, we will return it as is. Both are an expression.
+        # We should check if an expression is appropriate to return, but more on that later.
+        if script_words[index].isnumeric() or script_words[index] in variables:
+            index += 1
+            return script_words[index - 1]
         # and we will see if there are candidates that fit the word in the script.
         candidates = [synt for synt in syntax if synt[:len(script_words[index])] == script_words[index]]
         # if there is only one, then, well, we found it . . .
@@ -143,8 +165,9 @@ def find_next():
             index += 1
 
 # Finally, the main code.
-# Keep findin' 'em syntaxers until the document ends.
-while index < len(script_words):
+# Keep findin' 'em syntaxers until the document ends. 
+# The last word of the document is '\0' or sth, so we will ignore that.
+while index < len(script_words) - 1:
     find_next()
 
 # and we ain't gonna forget to close out friend pythonscript.
