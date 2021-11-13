@@ -15,7 +15,7 @@ with open(script_name, 'r') as windscript:
     script = windscript.read()
 
 # Here is the possibilities of the syntax:
-syntax = ["let it be known that NEW_VAR is EXPRESSION", "an input", "the sum of EXPRESSION and EXPRESSION", "is bigger than EXPRESSION", "print EXPRESSION", "if EXPRESSION, STATEMENT"]
+syntax = ["let it be known that", "an input", "the sum of", "is bigger than", "print", "if"]
 
 # And we open a new file to write python in.
 pythonscript = open(script_name + ".py", 'w')
@@ -29,6 +29,11 @@ for n in range(len(script_lines)):
 # index is a global variable that will track where we are at the script.
 index = 0
 
+# mode is where we will tell what kind of code we expect. We will assert it in the functions.
+# It has four possibilities: [s]tatement, [e]xpression, [c]ondition, or [a]ny.
+mode ="s"
+# We start with seeking a statement, because it will be weird otherwise, right?
+
 # We will store all known variables so we can return them as an expression when needed.
 variables = []
 # and it starts as nothing. It is the job of the functions to change it.
@@ -40,13 +45,13 @@ it = "nothing_yet"
 """
 The entire idea is that statements will write to the file,
 and expressions will return strings for the statements to write.
-
-However, sometimes expressions occur within expressions, and the cycle ends with a variable name or with an absolute (number or string). We still can't deal with that. That's why we have an eyesore at iffu().
 """
 
 def letbeknown():
-    # We want to use the global index, so:
-    global index
+    # We want to use the global index, and the global mode, so:
+    global index, mode
+    # And we have to make sure that a statement is appropriate here, so:
+    assert mode == "s" or mode == "a"
     # and we move up until we reach the variable's name.
     while(not script_words[index] == "that"):
         index += 1
@@ -58,16 +63,10 @@ def letbeknown():
     # And we move towards its value.
     index += 2
     # Its value is an expression, the very next expression, in fact:
+    mode = "e" # We are expecting an expression.
     exp = find_next()
-    """
-    Please note the find_next() returns the next function's return. The next one is an expression,
-    so it will return a string to fit here.
-    However, we still can't discern if what we came upon is an expression or a statement,
-    thus, one can write "let it be known that x is print x" and the interpreter will cry in the corner.
-    For now, we will assume the greatest of circumstances, and we will correct later.
-
-    Well, step by step, shall we?
-    """
+    # Please note the find_next() returns the next function's return. The next one is an expression,
+    # so it will return a string to fit here.
 
     # Anyway, we got the expression we want to assign, and we skip to the next line.
     # Oh, also note that we don't care about indentation yet. I think we should have a global variable
@@ -75,57 +74,79 @@ def letbeknown():
     # However, that is still an idea.
     pythonscript.write(exp)
     pythonscript.write('\n')
+    # Now at a new line we expect another statement:
+    mode = "s"
     
 def inp():
     # Pretty straigthforward.
-    global index
+    global index, mode
+    assert mode == "e" or mode == "a"
+    mode = "a"
+    """
+    Setting the mode to 'a' won't give us errors.
+    If someone wrote 'Let it be known that x is an input is bigger than 10' the interpreter will give an error,
+    because the 'let it be known' dude will set the mode to 's' at the end, and bigger than is a 'c'.
+    """
     index += 1
     return "input()"
 
 def sumof():
-    global index
+    global index, mode
+    assert mode == "e" or mode == "a"
     # We move towards the first of the two.
     while(not script_words[index] == "of"):
         index += 1
     index += 1
     # We will sum two expressions, so:
+    mode = "e"
     exp = find_next()
     # this will stop at the word "and," so we move one more word
     index += 1
     # and we land on the next expression.
+    mode = "e"
     exp2 = find_next()
     # Well, we sum them.
     to_return = exp + " + " + exp2
+    # At the end, anything might come after the sum:
+    mode = "a"
     return to_return
 
 def isbigger():
-    global index
+    global index, mode
     # Same stuff.
+    assert mode == "c" or mode == "a"
     while(not script_words[index] == "than"):
         index += 1
     index += 1
     # It compares to an expression (number maybe), so:
+    mode = "e"
     exp = find_next()
     # So, it just returns " > exp" Makes sense?
     return " > " + exp
 
 def printu():
-    global index
+    global index, mode
+    assert mode == "s" or mode == "a"
     # If you are curious, we are moving forward here (index += 1) because index was referring to "print"
     # and well, we are dealing with that, so, neeeext!
     index += 1
+    mode = "e"
     exp = find_next()
     # and we output "print(exp)" where exp is the next expression.
     pythonscript.write("print(" + exp + ")\n")
+    mode = "s"
 
 def iffu():
-    global index
+    global index, mode
     index += 1
-    # The following lines are . . . a sight to behold.
+    assert mode == "s" or mode == "a"
+    # If will take an expression first, then a condition.
+    mode = "e"
     exp = find_next()
+    mode = "c"
     exp += find_next()
     pythonscript.write("if " + exp + ": \n\t")
-    # None of that will remain after I figure out how to get expressions correctly, and indent correctly.
+    mode = "s"
 
     
 # *Ahem* Now we register the functions in the order the corresponding syntax occurs in the syntax list.
@@ -138,7 +159,7 @@ interprets = [letbeknown, inp, sumof, isbigger, printu, iffu]
 # He also will look at only one word from the syntax (only "let" from "let it be known that")
 # Actually, find_next() is still a kid, so excuse its manners.
 def find_next():
-    global index
+    global index, mode
     # Using global index does not sit well with me, for some reason, but oh well. Can't find aother way.
     # We will look forward until we reach the end of the script . . .
     while index < len(script_words) - 1:
@@ -146,11 +167,19 @@ def find_next():
         if script_words[index][0] == '"' and script_words[index][-1] == '"':
             # We increase the index, because we are done with the word.
             index += 1
+            # We have to make sure an expression is appropriate here:
+            assert mode == "e" or mode == "a"
+            # We set the mood to a, becuase we can get anything really after an expression.
+            # We can use it in a condition, maybe more expressions, or we skip to the next statement.
+            mode = "a"
             return script_words[index-1]
         # if the word is a number or a variable name, we will return it as is. Both are an expression.
         # We should check if an expression is appropriate to return, but more on that later.
         if script_words[index].isnumeric() or script_words[index] in variables:
             index += 1
+            assert mode == "e" or mode == "a"
+            mode = "a"
+            # Same as the last one.
             return script_words[index - 1]
         # and we will see if there are candidates that fit the word in the script.
         candidates = [synt for synt in syntax if synt[:len(script_words[index])] == script_words[index]]
