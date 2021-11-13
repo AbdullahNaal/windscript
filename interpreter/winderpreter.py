@@ -182,6 +182,8 @@ def find_next():
             # Same as the last one.
             return script_words[index - 1]
         # and we will see if there are candidates that fit the word in the script.
+        # The candidates are the items in the syntax list. n is the length of the word we came across.
+        # if the first n letters of the syntax equal the word, then it is a candidate.
         candidates = [synt for synt in syntax if synt[:len(script_words[index])] == script_words[index]]
         # if there is only one, then, well, we found it . . .
         # but actually not; we should check if it matches it FULLY, and we ain't doing that here . . .
