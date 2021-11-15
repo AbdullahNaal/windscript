@@ -136,17 +136,34 @@ def printu():
     pythonscript.write("print(" + exp + ")\n")
     mode = "s"
 
-def iffu():
+def iffu(more = "nah"):
     global index, mode
-    index += 1
+    # We will only move the index forward if we start at if. 
+    # If we start at more conditions, then the index is already correct.
+    if more != "yeah":
+        index += 1
     assert mode == "s" or mode == "a"
     # If will take an expression first, then a condition.
     mode = "e"
     exp = find_next()
     mode = "c"
     exp += find_next()
-    pythonscript.write("if " + exp + ": \n\t")
+    # Now, if we are not adding more conditions, then we just started, so:
+    if more != "yeah":
+        pythonscript.write("if")
+    # In any case, we will write the condition we got:
+    pythonscript.write(" " + exp)
+    # We ready the mode for the next statement:
     mode = "s"
+    # Now, if we land on more conditions, we will add them by calling iffu using more:
+    if script_words[index] == "and" or script_words[index] == "or":
+        pythonscript.write(" " + script_words[index])
+        index += 1
+        iffu("yeah")
+    # At the end, all the iffus we called will reach here, but we only want one of them to add an end-line.
+    # The one that shall end it is the one that called them all:
+    if more != "yeah":
+        pythonscript.write(": \n\t")
 
     
 # *Ahem* Now we register the functions in the order the corresponding syntax occurs in the syntax list.
