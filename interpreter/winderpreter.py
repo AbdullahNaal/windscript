@@ -99,8 +99,8 @@ def sumof():
     # and we land on the next expression.
     mode = "e"
     exp2 = find_next()
-    # Well, we sum them.
-    to_return = exp + " + " + exp2
+    # Well, we sum them. We will cast them to float, just in case. Inputs come as a string, so just in case:
+    to_return = "float(" + exp + ")" + " + " + "float(" + exp2 + ")"
     return to_return
 
 def isbigger():
@@ -114,7 +114,8 @@ def isbigger():
     mode = "e"
     exp = find_next()
     # So, it just returns " > exp" Makes sense?
-    return " > " + exp
+    # We will cast the expression to float, just in case:
+    return " > " + "float(" + exp + ")"
 
 def printu():
     global index, mode
