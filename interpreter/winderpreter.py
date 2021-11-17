@@ -30,7 +30,7 @@ for n in range(len(script_lines)):
 index = 0
 
 # mode is where we will tell what kind of code we expect. We will assert it in the functions.
-# It has four possibilities: [s]tatement, [e]xpression, [c]ondition, or [a]ny.
+# It has three possibilities: [s]tatement, [e]xpression, and [c]ondition.
 mode ="s"
 # We start with seeking a statement, because it will be weird otherwise, right?
 
@@ -51,7 +51,7 @@ def letbeknown():
     # We want to use the global index, and the global mode, so:
     global index, mode
     # And we have to make sure that a statement is appropriate here, so:
-    assert mode == "s" or mode == "a"
+    assert mode == "s"
     # and we move up until we reach the variable's name.
     while(not script_words[index] == "that"):
         index += 1
@@ -80,19 +80,13 @@ def letbeknown():
 def inp():
     # Pretty straigthforward.
     global index, mode
-    assert mode == "e" or mode == "a"
-    mode = "a"
-    """
-    Setting the mode to 'a' won't give us errors.
-    If someone wrote 'Let it be known that x is an input is bigger than 10' the interpreter will give an error,
-    because the 'let it be known' dude will set the mode to 's' at the end, and bigger than is a 'c'.
-    """
+    assert mode == "e"
     index += 1
     return "input()"
 
 def sumof():
     global index, mode
-    assert mode == "e" or mode == "a"
+    assert mode == "e"
     # We move towards the first of the two.
     while(not script_words[index] == "of"):
         index += 1
@@ -107,14 +101,12 @@ def sumof():
     exp2 = find_next()
     # Well, we sum them.
     to_return = exp + " + " + exp2
-    # At the end, anything might come after the sum:
-    mode = "a"
     return to_return
 
 def isbigger():
     global index, mode
     # Same stuff.
-    assert mode == "c" or mode == "a"
+    assert mode == "c"
     while(not script_words[index] == "than"):
         index += 1
     index += 1
@@ -126,7 +118,7 @@ def isbigger():
 
 def printu():
     global index, mode
-    assert mode == "s" or mode == "a"
+    assert mode == "s"
     # If you are curious, we are moving forward here (index += 1) because index was referring to "print"
     # and well, we are dealing with that, so, neeeext!
     index += 1
@@ -142,7 +134,7 @@ def iffu(more = "nah"):
     # If we start at more conditions, then the index is already correct.
     if more != "yeah":
         index += 1
-    assert mode == "s" or mode == "a"
+    assert mode == "s"
     # If will take an expression first, then a condition.
     mode = "e"
     exp = find_next()
@@ -185,17 +177,13 @@ def find_next():
             # We increase the index, because we are done with the word.
             index += 1
             # We have to make sure an expression is appropriate here:
-            assert mode == "e" or mode == "a"
-            # We set the mood to a, becuase we can get anything really after an expression.
-            # We can use it in a condition, maybe more expressions, or we skip to the next statement.
-            mode = "a"
+            assert mode == "e"
             return script_words[index-1]
         # if the word is a number or a variable name, we will return it as is. Both are an expression.
         # We should check if an expression is appropriate to return, but more on that later.
         if script_words[index].isnumeric() or script_words[index] in variables:
             index += 1
-            assert mode == "e" or mode == "a"
-            mode = "a"
+            assert mode == "e"
             # Same as the last one.
             return script_words[index - 1]
         # and we will see if there are candidates that fit the word in the script.
