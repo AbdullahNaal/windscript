@@ -295,7 +295,6 @@ def find_next(type_only=False):
             # The moment of truth . . .
             if script_full_word == candidate:
                 champions.append(candidate)
-                continue
         # At this point, candidates will either have one true champion, or nothing.
         if len(champions) == 1: # I know, we can say "if champions:" but I like wasting space.
             # If the champions was a variable,
