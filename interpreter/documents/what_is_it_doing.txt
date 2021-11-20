@@ -1,0 +1,55 @@
+Have you read usage.txt?
+Please do so first.
+
+Here is an overview of what winderpreter does.
+If you want the nitty-gritty of how it does things, then read the script.
+
+When you pass the file name as an arguement to WP (WinderPreter) it reads the file and stores the words of the script.
+
+The supported syntax is hard-coded into WP.
+It will compare the first word of the script to see if it looks like one of the supported syntax, 
+if it looks like one, it will make sure it matches it,
+then it will send it to the place (function) that will take care of it.
+
+So, if "let" was the first word of the script, it will go: "hmm, it might be 'let it be known,' right?" 
+so it will read a few words in advance, and if it was so, it will call the corresponding function (letbeknown) and it will take care of the rest. When done, WP will go look into the next matching word.
+
+If the word matched nothing, WP will complain, so please be nice with him.
+
+So, WP will keep matching words until the script ends.
+
+Umm, so how does the interpretation happen?
+
+Ya see, the functions do all the work. 
+
+The main idea is that we have a function for each syntax piece. 
+The function will translate its own piece of the syntax, so it does not do much work. 
+
+Functions that translate statements will write to the .wind.py file. So, the "print" function will write "print()" to the file. 
+However, it expects an expression to print, yeah?
+Yeah, the "print" function will go back to WP and tell it that there should be an expression ahead, so please find it for me.
+
+"print" will tell WP where to look. After all, the syntax determines where the expression will be (after the word "print")
+
+WP will find the expression, and it will call the corresponding function to deal with the "print" function that complained.
+
+Here comes the other big idea:
+Functions that translate expressions won't write to the file. They will return a string. 
+To whom? To the statement function that called them.
+
+An expression won't exist by itself. A statement will always be waiting for it, so we return a string and the daddy statement function will put it however it sees fit.
+
+(There are also functions that deal with conditions, but they are practically the same as the ones that deal with expressions.)
+
+So, statements will write to the file, and they will write the expressions how they see fit.
+
+Expressions will convert the syntax, and return the translated stuff to the statement to write to the file.
+
+Each statement function will write a line break '\n' at the end, to allow for new statements to write.
+They will also tell WP that a statement shall follow, else something wrong went on.
+
+After all, if a statement considers its work done, but an expressions springs in its face, it will not know how to deal with it.
+
+That's how WP works. I can go on about how each function does what it does, but I think any more detail and you are better off reading the actual windpreter.py.
+
+Have fun!

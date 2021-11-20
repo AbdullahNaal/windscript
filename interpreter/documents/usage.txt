@@ -1,0 +1,14 @@
+Winderpreter is a command line tool. 
+It takes a .wind file that adheres to the syntax found at /design/syntax.txt,
+and spits out a .wind.py python file that fulfills the script. 
+
+To use it, write a .wind file, then open a terminal at the directory, and execute winderpreter:
+"python winderpreter.py FILE_NAME.wind"
+
+If all goes well, a FILE_NAME.wind.py will appear in the directory.
+
+If a syntax error was encountered, winderpreter will specify the word that ticked it off.
+
+An assertion error will be given sometimes in place of the syntax error, but it is the same.
+
+Please check /design/syntax.txt for the supported syntax. The supported syntax will have [DONE] prefixed to it.
