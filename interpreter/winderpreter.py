@@ -76,7 +76,8 @@ def letbeknown(continuation=False):
     # And we write it like:
     # "word then word" ==> "var_word_then_word"
     # This will allow for variables that have the name "0" because they will become "var_0"
-    pythonscript.write("var_" +var_name.replace(' ', '_') + " = ")
+    # Operators can't be used in variable names, so we will replace them with their names.
+    pythonscript.write("var_" +var_name.replace(' ', '_').replace('+', 'plus').replace('-', 'minus') + " = ")
     # and we register the new variable to the syntax, if it did not exist already:
     if var_name not in syntax:
         syntax.append(var_name)
@@ -229,17 +230,15 @@ def find_next(type_only=False):
             assert mode == "e"
             return script_words[index-1]
         # if the word is a number, we will return it as is. It is an expression.
-        # This will prevent us redefining numbers, like "let ... 0 be 1" 
-        # Because when we encounter 0 we will return it immediately.
-        # I fill fix that later, I guess.
+        # but not so fast, maybe we redifined the number, 
+        # so for now, we will see if it could be a number.
+        could_be_number = False
         if script_words[index].isnumeric():
-            if type_only:
-                return "e"
-            index += 1
-            assert mode == "e"
-            # Same as the last one.
-            return script_words[index - 1]
-        # If none of the above was the case, what remains is it adhering to the syntax.
+            if type_only: # A number is either a number or a variable,
+                return "e" # an expression anyway.
+            could_be_number = True # If we are to return its value, then we will be patient and wait.
+
+        # We will check if what we came across adheres to the syntax.
         # We will see if there are candidates that fit the word in the script.
         # The candidates are the items in the syntax list. n is the length of the word we came across.
         # if the first n letters of an item in the syntax equal the word, then it is a candidate.
@@ -311,13 +310,17 @@ def find_next(type_only=False):
                 for word in champions[0].split(' '):
                     index += 1
                 assert mode == "e"
-                return "var_" + champions[0].replace(' ', '_')
+                return "var_" + champions[0].replace(' ', '_').replace('+', 'plus').replace('-','minus')
             if type_only: # If it was normal syntax, we return its type as per what we registered:
                 return types[syntax.index(champions[0])]
             # After finding the sole champion syntax candidate, we will fire the corresponding function.
             return interprets[syntax.index(champions[0])]()
         else: # If, God forbid, nothing matches,
-            if type_only: # The last hope will be that we are checking for the type.
+            if could_be_number: # then our last hope is that it was a number all along.
+                index += 1 # We processed the number, so upsy-daisy.
+                assert mode == "e"
+                return script_words[index - 1]
+            if type_only: # The lastest last hope will be that we are checking for the type only.
                 return "e, probably" # We don't recognize what we came across, so it is an expression, I guess.
                 # Most likely it is a variable name we have not registered yet or sth.
                 # Whatever it might be, it is most likely an expression.
