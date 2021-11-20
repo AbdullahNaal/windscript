@@ -1,2 +1,2 @@
-let it be known that x is an input and yum is 10
-if the sum of x and yum is bigger than yum print yum and x
+let it be known that 1 + 2 is 1 and 0 is 10
+if the sum of 1 + 2 and 0 is bigger than 10 print "Good" and "Try_Again"

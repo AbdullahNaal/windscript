@@ -36,10 +36,16 @@ or "the sum of x and an input"
 
 [NOT YET] The statements to execute will be between the "if" and the word "end," but that's no fun, so find something else later.
 
-Also, "it," "they," and "them" will be substituted with the nearest variable. For example:
+Also, "it," "they," and "them" will be substituted with the nearest main expression. For example:
 	Let it be known that x is 5
 	Increase it by the sum of 3 and 4
 	Let it become it and print it
+		all of "it" here is x.
+	Main expression is the expression the statement expects.
+	print(stuff): "it" will become stuff.
+	let it be known that dodo is 5: "it" will become dodo
+	Statements that set variables' values will set "it" to the var_name.
+	Statements like print will set "it" to the expression they take.
 
 For comments:
 	Note: COMMENT. You can continue the code now.

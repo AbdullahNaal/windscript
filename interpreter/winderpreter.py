@@ -65,12 +65,23 @@ def letbeknown(continuation=False):
         while(not script_words[index] == "that"):
             index += 1
         index+=1
-    # Now we write it:
-    pythonscript.write(script_words[index] + " = ")
-    # and we register the new variable:
-    variables.append(script_words[index])
+    # Now, the variable name can be more than one word, so we will collect it:
+    # We will start with the first word then move forward.
+    var_name = script_words[index]
+    index += 1
+    # And until we reach 'is' or 'are' we will keep adding words to the variable name.
+    while (not script_words[index] == "is" and not script_words[index] == "are" ):
+        var_name += " " + script_words[index]
+        index += 1
+    # And we write it like:
+    # "word then word" ==> "var_word_then_word"
+    # This will allow for variables that have the name "0" because they will become "var_0"
+    pythonscript.write("var_" +var_name.replace(' ', '_') + " = ")
+    # and we register the new variable to the syntax, if it did not exist already:
+    if var_name not in syntax:
+        syntax.append(var_name)
     # And we move towards its value.
-    index += 2
+    index += 1
     # Its value is an expression, the very next expression, in fact:
     mode = "e" # We are expecting an expression.
     exp = find_next()
@@ -217,35 +228,57 @@ def find_next(type_only=False):
             # We have to make sure an expression is appropriate here:
             assert mode == "e"
             return script_words[index-1]
-        # if the word is a number or a variable name, we will return it as is. Both are an expression.
-        if script_words[index].isnumeric() or script_words[index] in variables:
+        # if the word is a number, we will return it as is. It is an expression.
+        # This will prevent us redefining numbers, like "let ... 0 be 1" 
+        # Because when we encounter 0 we will return it immediately.
+        # I fill fix that later, I guess.
+        if script_words[index].isnumeric():
             if type_only:
                 return "e"
             index += 1
             assert mode == "e"
             # Same as the last one.
             return script_words[index - 1]
-        # and we will see if there are candidates that fit the word in the script.
+        # If none of the above was the case, what remains is it adhering to the syntax.
+        # We will see if there are candidates that fit the word in the script.
         # The candidates are the items in the syntax list. n is the length of the word we came across.
-        # if the first n letters of the syntax equal the word, then it is a candidate.
+        # if the first n letters of an item in the syntax equal the word, then it is a candidate.
         candidates = [synt for synt in syntax if synt[:len(script_words[index])] == script_words[index]]
-        # Now, we need to filter the candidates.
-        # The first few characters matching does not guarantee that all will match.
+        # Now, we need to filter the candidates,
+        # since the first few characters matching does not guarantee that all will match.
+        # Those who survive the filters are
+        champions = [] # *-*
         # For each candidate, we will run some checks:
         for candidate in candidates:
             # If the entirety of the candidate is just one word that equals the word we came across,
             # then it shall pass.
             if candidate == script_words[index]:
+                champions.append(candidate)
                 continue
             # If it is just one word that does not equal the word we came across,
             if ' ' not in candidate:
                 # then we are sorry, you shall not pass.
+                """
+                Originally, we did not have champions, 
+                I just removed the candidate from the candidates list,
                 candidates.remove(candidate)
+
+                However, it resulted in errors.
+                We are taking "for candidate in candidates"
+                When I remove an item from candidates, its length shrink.
+                This for loop will repeat len(candidates) number of times.
+                If candidates had 3 items, it will repeat 3 times . . . NO!
+                Y'see, its implementation is a for(int i=0; i < len(candidates);i++)
+                When we change the length of candidates, it terminates earlier.
+                This results in some candidates getting a free pass.
+                So, I couldn't change the original list, and I made champions.
+
+                Yeah, it took me 5 minutes of frustration and printing whatever came my way to find that out.
+                """
                 # and we call for the next candidate. No need to execute the rest of the loop.
                 continue
             # Okay. Here will remain the dudes that are more than one word, 
             # who may or may not be the correct syntax to call.
-
             # Let's say the candidate is n words long. We will construct the script_full_word
             # from n words after the current one we are at, including it.
             # If we stopped at "an" from "an inputti," and "an input" was a candidate,
@@ -261,16 +294,30 @@ def find_next(type_only=False):
             # but this results in a whitespace at the end. We shall remove it:
             script_full_word = script_full_word[:len(script_full_word)-1]
             # The moment of truth . . .
-            if script_full_word != candidate:
-                candidates.remove(candidate)
+            if script_full_word == candidate:
+                champions.append(candidate)
+                continue
         # At this point, candidates will either have one true champion, or nothing.
-        if len(candidates) == 1: # I know, we can say "if candidates:" but I like wasting space.
-            if type_only: # After all the trouble, we return the type . . . oh well.
-                return types[syntax.index(candidates[0])]
+        if len(champions) == 1: # I know, we can say "if champions:" but I like wasting space.
+            # If the champions was a variable,
+            # then its index in syntax is greater than the length of interprets.
+            # At the beginning, syntax and interprets had the same length,
+            # But we added variables to syntax, so their indices exceed interprets.
+            if syntax.index(champions[0]) >= len(interprets):
+                # A variable is an expression
+                if type_only:
+                    return "e"
+                # If we need to return the correct variable name that python knows, we will construct it:
+                for word in champions[0].split(' '):
+                    index += 1
+                assert mode == "e"
+                return "var_" + champions[0].replace(' ', '_')
+            if type_only: # If it was normal syntax, we return its type as per what we registered:
+                return types[syntax.index(champions[0])]
             # After finding the sole champion syntax candidate, we will fire the corresponding function.
-            return interprets[syntax.index(candidates[0])]()
+            return interprets[syntax.index(champions[0])]()
         else: # If, God forbid, nothing matches,
-            if type_only: # The last hope will be we are checking for the type.
+            if type_only: # The last hope will be that we are checking for the type.
                 return "e, probably" # We don't recognize what we came across, so it is an expression, I guess.
                 # Most likely it is a variable name we have not registered yet or sth.
                 # Whatever it might be, it is most likely an expression.
