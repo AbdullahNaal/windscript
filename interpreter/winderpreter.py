@@ -56,9 +56,7 @@ and expressions will return strings for the statements to write.
 def letbeknown(continuation=False):
     # We want to use the global index, the global mode, and the global last index, so:
     global index, mode, last_index
-    # And we have to make sure that a statement is appropriate here, so:
-    assert mode == "s"
-    # and we move up until we reach the variable's name.
+    # We move up until we reach the variable's name.
     # We will only move up if it was called normally. If it was called using 'and' as a continuation, 
     # then the index is already set.
     if not continuation:
@@ -97,20 +95,16 @@ def letbeknown(continuation=False):
     pythonscript.write('\n')
     # Now at a new line we expect another statement:
     mode = "s"
-    # We set the last used statement to be 0, the index of this function in the interprets list, down below.
-    last_index = 0
     
 def inp():
     # Pretty straigthforward.
-    global index, mode
-    assert mode == "e"
+    global index
     # We are jumping two in the index because it is "an input," two words.
     index += 2
     return "input()"
 
 def sumof():
     global index, mode
-    assert mode == "e"
     # We move towards the first of the two.
     while(not script_words[index] == "of"):
         index += 1
@@ -131,7 +125,6 @@ def sumof():
 def isbigger():
     global index, mode
     # Same stuff.
-    assert mode == "c"
     while(not script_words[index] == "than"):
         index += 1
     index += 1
@@ -144,7 +137,6 @@ def isbigger():
 
 def printu(continuation=False):
     global index, mode, last_index
-    assert mode == "s"
     # Again, we only move forward in the index if it was not set already.
     if not continuation:
         index += 1
@@ -153,7 +145,6 @@ def printu(continuation=False):
     # and we output "print(str(exp))" where exp is the next expression.
     pythonscript.write("print(str(" + exp + "))\n")
     mode = "s"
-    last_index = 4
 
 def iffu(more = "nah"):
     global index, mode
@@ -161,7 +152,6 @@ def iffu(more = "nah"):
     # If we start at more conditions, then the index is already correct.
     if more != "yeah":
         index += 1
-    assert mode == "s"
     # If will take an expression first, then a condition.
     mode = "e"
     exp = find_next()
@@ -184,12 +174,8 @@ def iffu(more = "nah"):
     if more != "yeah":
         pythonscript.write(": \n\t")
 
-    # We are not setting last_index here, because iffu has its own way to deal with the ands and ors.
-
 def andu():
-    global index, mode, last_index
-    # 'and' will appear in the place of a statement only, so:
-    assert mode == "s"
+    global index, last_index
     # if an expression expects 'and,' it will deal with it itself.
     index += 1 # We processed 'and' and we move on.
     # If the last index is -1, this means that no statement was called yet.
@@ -224,7 +210,7 @@ def clean_word(word):
 # Now, the meat of the program is here. This guy will find the next syntax we should execute.
 # With an optional arguement that checks if we are only interested in the type of the next word we hit.
 def find_next(type_only=False):
-    global index, mode, types
+    global index, mode, types, last_index
     # Using global index does not sit well with me, for some reason, but oh well. Can't find aother way.
     # We first hafta make sure we are within the bounds of the script:
     if index < len(script_words) - 1: 
@@ -348,9 +334,17 @@ def find_next(type_only=False):
                     index += 1
                 assert mode == "e"
                 return "var_" + champions[0].replace(' ', '_').replace('+', 'plus').replace('-','minus')
+            typu = types[syntax.index(champions[0])]
             if type_only: # If it was normal syntax, we return its type as per what we registered:
-                return types[syntax.index(champions[0])]
+                return typu
             # After finding the sole champion syntax candidate, we will fire the corresponding function.
+            # But only after we make sure that it is appropriate here.
+            assert mode == typu
+            # Also, if the champion is a statement, then we set the last_index as well.
+            # "and" will use the last_index to call functions,
+            if typu == "s" and not champions[0] == "and": # and "and" is not something "and" should call.
+                last_index = syntax.index(champions[0])
+            # Finally, we run the actual thing.
             return interprets[syntax.index(champions[0])]()
         else: # If, God forbid, nothing matches,
             if could_be_number: # then our last hope is that it was a number all along.

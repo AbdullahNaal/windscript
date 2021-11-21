@@ -3,7 +3,7 @@ The syntax will be documented here.
 First, declaring variables:
 [DONE]	"let it be known that VAR_NAME is VALUE"
 [NO]	or without a value, "let VAR_NAME be known" 
-[NO]	Letter case does not matter, except for variables' names.
+[DONE]	Letter case does not matter, except for variables' names.
 
 Assigning a value to variables:
 	"let VAR_NAME become VALUE"
