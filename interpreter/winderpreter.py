@@ -217,18 +217,42 @@ def find_next(type_only=False):
     # Using global index does not sit well with me, for some reason, but oh well. Can't find aother way.
     # We first hafta make sure we are within the bounds of the script:
     if index < len(script_words) - 1: 
-        # if the word is a string, then, well, a string is an expression.
-        # We can only deal with one word strings as of this moment, 
-        # but changing that is easy.
-        if script_words[index][0] == '"' and script_words[index][-1] == '"':
+        # if the word starts with '"' then it is a string.
+        if script_words[index][0] == '"':
             # If we are only interested in the type, then, well, it is an expression.
             if type_only:
                 return "e"
-            # We increase the index, because we are done with the word.
-            index += 1
-            # We have to make sure an expression is appropriate here:
+            # We make sure an expression is appropriate to return here,
             assert mode == "e"
-            return script_words[index-1]
+            # And we will construct the string, since it can be more than one word.
+            full_string = script_words[index] # We start with the first one,
+            index += 1 # and we move towards the next.
+            # Also, 2 is the maximum number of " you can have in the first word.
+            assert full_string.count('"') < 3 
+            # Now, the string might be just one word. If that was the case, then we are done.
+            # if not, however, then we have to keep collecting more words.
+            # Also, if the first word of the string was '"' only, then we also need to collect. 
+            # So if the word we landed on was 1 character long (")
+            # we will collect the rest:
+            if not full_string.count('"') > 1 or len(full_string) == 1:
+                # If there were more than one " then there were exactly 2, and the string is over.
+
+                # We will move forward until we hit the closing '"' or the end of the script.
+                while not script_words[index].count('"') > 0 and index < len(script_words) - 1:
+                    full_string += " " + script_words[index]
+                    index += 1
+                # We will stop at the last word, without adding it. So, we will add it here.
+                # We will add until " in the string, in case it came in the middle of the word.
+                full_string += " " + script_words[index][:script_words[index].index('"')+1]
+                # We have to make sure there is just ONE closing " in the word.
+                assert script_words[index].count('"') == 1
+                # If the " was in the middle, we will assume the rest of the word to be a new word,
+                # so we will add it to the script words, right after where we are.
+                if not script_words[index].index('"') + 1 == len(script_words[index]):
+                    script_words.insert(index+1, script_words[index][script_words[index].index('"')+1:])
+                index += 1
+            # The string is now ready
+            return full_string
         # if the word is a number, we will return it as is. It is an expression.
         # but not so fast, maybe we redifined the number, 
         # so for now, we will see if it could be a number.

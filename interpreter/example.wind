@@ -1,2 +1,3 @@
-let it be known that 1 + 2 is 1 and 0 is 10
+let it be known that 1 + 2 is 1 and 0 is 10 and the words are "Hallo!"
 if the sum of 1 + 2 and 0 is bigger than 10 print "Good" and "Try_Again"
+print the words and "very good"
