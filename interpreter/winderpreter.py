@@ -210,6 +210,17 @@ interprets = [letbeknown, inp, sumof, isbigger, printu, iffu, andu]
 # The type of each function in the interprets list. We will use that for andu.
 types = ["s", "e", "e", "c", "s", "s", "s"]
 
+# Now, the words we will get may have punctuation, their letter case might not match the syntax, etc.
+# We will "clean" the word:
+def clean_word(word):
+    # The punctuation marks that we will get rid of are:
+    punctuations = ['.', ',', ':', ';', '?', '!']
+    # As long as they are not at the end, we will get rid of them.
+    while word[-1] in punctuations:
+        word = word[:-1]
+    # And we leave it in lowercase form.
+    return word.lower()
+
 # Now, the meat of the program is here. This guy will find the next syntax we should execute.
 # With an optional arguement that checks if we are only interested in the type of the next word we hit.
 def find_next(type_only=False):
@@ -249,7 +260,9 @@ def find_next(type_only=False):
                 # If the " was in the middle, we will assume the rest of the word to be a new word,
                 # so we will add it to the script words, right after where we are.
                 if not script_words[index].index('"') + 1 == len(script_words[index]):
-                    script_words.insert(index+1, script_words[index][script_words[index].index('"')+1:])
+                    # Also, we have to make sure we are not adding punctuation as a word, so:
+                    if len(clean_word(script_words[index][script_words[index].index('"')+1:])) > 0:
+                        script_words.insert(index+1, script_words[index][script_words[index].index('"')+1:])
                 index += 1
             # The string is now ready
             return full_string
@@ -257,7 +270,8 @@ def find_next(type_only=False):
         # but not so fast, maybe we redifined the number, 
         # so for now, we will see if it could be a number.
         could_be_number = False
-        if script_words[index].isnumeric():
+        # We will clean all the words we check, as to allow punctuation anywhere.
+        if clean_word(script_words[index]).isnumeric():
             if type_only: # A number is either a number or a variable,
                 return "e" # an expression anyway.
             could_be_number = True # If we are to return its value, then we will be patient and wait.
@@ -266,7 +280,7 @@ def find_next(type_only=False):
         # We will see if there are candidates that fit the word in the script.
         # The candidates are the items in the syntax list. n is the length of the word we came across.
         # if the first n letters of an item in the syntax equal the word, then it is a candidate.
-        candidates = [synt for synt in syntax if synt[:len(script_words[index])] == script_words[index]]
+        candidates = [synt for synt in syntax if synt[:len(script_words[index])] == clean_word(script_words[index])]
         # Now, we need to filter the candidates,
         # since the first few characters matching does not guarantee that all will match.
         # Those who survive the filters are
@@ -275,7 +289,7 @@ def find_next(type_only=False):
         for candidate in candidates:
             # If the entirety of the candidate is just one word that equals the word we came across,
             # then it shall pass.
-            if candidate == script_words[index]:
+            if candidate == clean_word(script_words[index]):
                 champions.append(candidate)
                 continue
             # If it is just one word that does not equal the word we came across,
@@ -313,7 +327,7 @@ def find_next(type_only=False):
             # but we can also compare word by word, which will require less code,
             # but who cares. ^_^
             for i, word in enumerate(candidate.split(' ')):
-                script_full_word += script_words[index + i] + ' ' # we be adding a word, then a whitespace,
+                script_full_word += clean_word(script_words[index + i]) + ' ' # we be adding a word, then a whitespace,
             # but this results in a whitespace at the end. We shall remove it:
             script_full_word = script_full_word[:len(script_full_word)-1]
             # The moment of truth . . .
@@ -342,7 +356,7 @@ def find_next(type_only=False):
             if could_be_number: # then our last hope is that it was a number all along.
                 index += 1 # We processed the number, so upsy-daisy.
                 assert mode == "e"
-                return script_words[index - 1]
+                return clean_word(script_words[index - 1])
             if type_only: # The lastest last hope will be that we are checking for the type only.
                 return "e, probably" # We don't recognize what we came across, so it is an expression, I guess.
                 # Most likely it is a variable name we have not registered yet or sth.
